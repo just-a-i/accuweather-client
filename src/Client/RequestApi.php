@@ -51,6 +51,21 @@ class RequestApi
     }
 
     /**
+     * Convert boolean to string and handle arrays.
+     */
+    private function normalize($array)
+    {
+        foreach ($array as &$el) {
+            if (is_bool($el)) {
+                $el = $el ? "true" : "false";
+            } elseif (is_array($el)) {
+                $el = $this->normalize($el);
+            }
+        }
+        return $array;
+    }
+
+    /**
      * @param string $path
      * @param array $params
      * @param string $method
@@ -60,7 +75,7 @@ class RequestApi
     public function send(string $path, array $params = [], string $method = 'get')
     {
         $params['apikey'] = $this->apiKey;
-        $rowData = http_build_query($params);
+        $rowData = http_build_query($this->normalize($params));
         $response = $this->http_client->request($method, $path, [
             'query' => $rowData
         ]);
